@@ -28,13 +28,6 @@ int main(void)  {
         Arguments[1] = programArguments;
         Arguments[2] = NULL;
 
-        //remove trailing newline characters
-        //programName[strcspn(programName, "\n")] = 0; 
-        //programArguments[strcspn(programArguments, "\n")] = 0;
-        //printf("Program Name = %s\n", programName);
-        //printf("Program Arguments = %s\n", Arguments[1]);
-        //printf("Program Arguments2 = %s\n", Arguments[2]);
-
 
         pid_t pid = fork();
         int execStatus;
@@ -47,10 +40,10 @@ int main(void)  {
         if (pid == 0)
         {
             /* child process */
-            printf("Child Process: \n");
+            //printf("Child Process: \n");
             // argv[1] is the command, and &argv[1] is the address of rest
             execStatus = execvp(Arguments[0], &Arguments); 
-            printf("Exec Status Child Process: %d\n", execStatus);
+            //printf("Exec Status Child Process: %d\n", execStatus);
             //return execStatus;
             exit(0);
         }
@@ -58,7 +51,7 @@ int main(void)  {
         {
             /* parent process */
             wait(NULL);
-            printf("Child Process with pid: %d Finished Executing.\n", pid);
+            //printf("Child Process with pid: %d Finished Executing.\n", pid);
         }
 
     }
