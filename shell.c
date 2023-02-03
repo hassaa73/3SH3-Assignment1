@@ -13,7 +13,7 @@ typedef struct
 
 Command **addToHistory(Command **args, Command *arg)
 {
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 4; i++)
     {
         args[i] = args[i + 1];
     }
