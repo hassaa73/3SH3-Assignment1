@@ -49,7 +49,10 @@ int main(void)
 
         // Split input buffer into program name, and arguments
         char *programName = strtok(arg->inputBuffer, " \t\r\n\f\v");
-        char *programArguments = strtok(NULL, "\n");
+        char *programArguments = strtok(NULL, "\0");
+
+        if (programArguments != NULL)
+            programArguments[strcspn(programArguments, "\n")] = 0;
 
         arg->Arguments[0] = programName;
         arg->Arguments[1] = programArguments;
@@ -91,6 +94,7 @@ int main(void)
                         }
                     }
                 }
+                return 0;
             }
             else
             {
@@ -108,12 +112,11 @@ int main(void)
                 if (!strcmp(arg->Arguments[0], "!!")){
                     arg = history[4];
                 }
-                if (strcmp(arg->Arguments[0], "history")){
-                    if (!(!strcmp(actualCommand, "!!") && historySize == 0)){
-                        history = addToHistory(history, arg);
-                        if (historySize < 5)
-                            historySize++;
-                    }
+
+                if (!(!strcmp(actualCommand, "!!") && historySize == 0)){
+                    history = addToHistory(history, arg);
+                    if (historySize < 5)
+                        historySize++;
                 }
 
             } else {
