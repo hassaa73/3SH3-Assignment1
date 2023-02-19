@@ -38,6 +38,7 @@ int main(void)
         printf(">osh ");
         fflush(stdout);
 
+
         char *inputBuffer; // https://c-for-dummies.com/blog/?p=1112
         size_t bufsize = (MAX_LINE / 2 + 1);
         size_t inputLen;
@@ -51,6 +52,7 @@ int main(void)
         char *programName = strtok(arg->inputBuffer, " \t\r\n\f\v");
         char *programArguments = strtok(NULL, "\0");
 
+        // Remove Trailing newline character from arguments if it exists
         if (programArguments != NULL)
             programArguments[strcspn(programArguments, "\n")] = 0;
 
@@ -58,17 +60,21 @@ int main(void)
         arg->Arguments[1] = programArguments;
         arg->Arguments[2] = NULL;
 
-        int execStatus = 0;
+        if (programName != NULL && !strcmp(programName, "exit"))
+            should_run = 0;
 
+        int execStatus = 0;
         int async = 0;
 
+        // Check for trailing ampersand that indicates async functionality and remove it if it exists.
         if (arg->Arguments[1] != NULL)
         {
             size_t arglen = strlen(arg->Arguments[1]);
-            if (strncmp(arg->Arguments[1] + arglen - 1, "&", 1) == 0){
+            if (strncmp(arg->Arguments[1] + arglen - 1, "&", 1) == 0)
+            {
                 async = 1;
                 arg->Arguments[1][strcspn(arg->Arguments[1], "&")] = 0;
-                arg->Arguments[1][arglen-2] = '\0';
+                arg->Arguments[1][arglen - 2] = '\0';
                 if (strlen(arg->Arguments[1]) == 0)
                     arg->Arguments[1] = NULL;
             }
@@ -83,9 +89,8 @@ int main(void)
         else if (pid == 0)
         {
             /* child process */
-            // printf("Child Process: \n");
-            //  argv[1] is the command, and &argv[1] is the address of rests
-            if (!strcmp(arg->Arguments[0], "!!"))
+
+            if (!strcmp(arg->Arguments[0], "!!")) // Repeat Last Command
             {
                 if (historySize != 0)
                 {
@@ -99,7 +104,7 @@ int main(void)
                     return 0;
                 }
             }
-            else if (!strcmp(arg->Arguments[0], "history"))
+            else if (!strcmp(arg->Arguments[0], "history")) // Print History
             {
                 for (int i = 4; i >= 5 - historySize; --i)
                 {
@@ -125,23 +130,25 @@ int main(void)
         else if (pid > 0)
         {
             /* parent process */
-            if (!async){
+            if (!async)
+            {
                 wait(NULL);
+                printf("Waited!\n");
             }
 
             if (execStatus == 0)
             {
-                // printf("ExecStatus: %d, for arg: %s\n", execStatus, arg);
                 char *actualCommand = arg->Arguments[0];
-                if (actualCommand != NULL){
-                    if (!strcmp(actualCommand, "!!"))
+                if (actualCommand != NULL)
+                {
+                    if (!strcmp(actualCommand, "!!")) // replace !! with actual command
                     {
                         arg = history[4];
                     }
 
                     if (!(!strcmp(actualCommand, "!!") && historySize == 0))
                     {
-                        history = addToHistory(history, arg);
+                        history = addToHistory(history, arg); // Add latest command to history
                         if (historySize < 5)
                             historySize++;
                     }
@@ -151,7 +158,6 @@ int main(void)
             {
                 printf("Error executing last command\n");
             }
-            // printf("Child Process with pid: %d Finished Executing.\n", pid);
         }
     }
 
