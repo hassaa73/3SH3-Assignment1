@@ -57,8 +57,22 @@ int main(void)
         arg->Arguments[0] = programName;
         arg->Arguments[1] = programArguments;
         arg->Arguments[2] = NULL;
- 
+
         int execStatus = 0;
+
+        int async = 0;
+
+        if (arg->Arguments[1] != NULL)
+        {
+            size_t arglen = strlen(arg->Arguments[1]);
+            if (strncmp(arg->Arguments[1] + arglen - 1, "&", 1) == 0){
+                async = 1;
+                arg->Arguments[1][strcspn(arg->Arguments[1], "&")] = 0;
+                arg->Arguments[1][arglen-2] = '\0';
+                if (strlen(arg->Arguments[1]) == 0)
+                    arg->Arguments[1] = NULL;
+            }
+        }
 
         pid_t pid = fork();
         if (pid < 0)
@@ -69,27 +83,34 @@ int main(void)
         else if (pid == 0)
         {
             /* child process */
-            //printf("Child Process: \n");
-            // argv[1] is the command, and &argv[1] is the address of rests
+            // printf("Child Process: \n");
+            //  argv[1] is the command, and &argv[1] is the address of rests
             if (!strcmp(arg->Arguments[0], "!!"))
             {
-                if (historySize != 0) {
+                if (historySize != 0)
+                {
                     arg = history[4];
                     execStatus = execvp(arg->Arguments[0], &arg->Arguments);
-                } else {
+                }
+                else
+                {
                     printf("No commands in history\n");
                     execStatus = -1;
                     return 0;
                 }
-
             }
             else if (!strcmp(arg->Arguments[0], "history"))
             {
-                for (int i = 4; i>=5-historySize; --i){
-                    if (history[i]->Arguments[0] != NULL) {
-                        if (history[i]->Arguments[1] != NULL) {
+                for (int i = 4; i >= 5 - historySize; --i)
+                {
+                    if (history[i]->Arguments[0] != NULL)
+                    {
+                        if (history[i]->Arguments[1] != NULL)
+                        {
                             printf("%s %s\n", history[i]->Arguments[0], history[i]->Arguments[1]);
-                        } else {
+                        }
+                        else
+                        {
                             printf("%s\n", history[i]->Arguments[0]);
                         }
                     }
@@ -104,22 +125,30 @@ int main(void)
         else if (pid > 0)
         {
             /* parent process */
-            wait(NULL);
+            if (!async){
+                wait(NULL);
+            }
+
             if (execStatus == 0)
             {
                 // printf("ExecStatus: %d, for arg: %s\n", execStatus, arg);
                 char *actualCommand = arg->Arguments[0];
-                if (!strcmp(arg->Arguments[0], "!!")){
-                    arg = history[4];
-                }
+                if (actualCommand != NULL){
+                    if (!strcmp(actualCommand, "!!"))
+                    {
+                        arg = history[4];
+                    }
 
-                if (!(!strcmp(actualCommand, "!!") && historySize == 0)){
-                    history = addToHistory(history, arg);
-                    if (historySize < 5)
-                        historySize++;
+                    if (!(!strcmp(actualCommand, "!!") && historySize == 0))
+                    {
+                        history = addToHistory(history, arg);
+                        if (historySize < 5)
+                            historySize++;
+                    }
                 }
-
-            } else {
+            }
+            else
+            {
                 printf("Error executing last command\n");
             }
             // printf("Child Process with pid: %d Finished Executing.\n", pid);
